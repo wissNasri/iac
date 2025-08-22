@@ -5,9 +5,7 @@ on:
   push:
     branches: 
       - main
-    paths: 
-      - "*.tf"
-      - "bastion_user_data.sh"
+ 
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
