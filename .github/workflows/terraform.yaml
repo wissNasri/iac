@@ -3,12 +3,8 @@ name: Coudcore IAC
 on:
     push:
       branches: 
-        - master
-      paths: 
-        - terraform/**
-    pull_request:
-      branches: 
-        - master
+        - main
+   
       paths: 
         - terraform/**
 env:
