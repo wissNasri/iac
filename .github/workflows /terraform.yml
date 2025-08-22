@@ -1,54 +1,13 @@
-name: Cloudcore IAC
+name: Test Workflow
 
-# Déclenche le workflow uniquement sur push sur main
 on:
   push:
     branches:
       - main
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
-  AWS_REGION: eu-north-1
-
 jobs:
-  terraform:
-    name: Apply Terraform
+  hello:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: .  # fichiers Terraform à la racine
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.7.8"  # optionnel : la version que tu veux
-
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="bucket=$BUCKET_TF_STATE" \
-            -backend-config="region=$AWS_REGION"
-
-      - name: Terraform Format
-        run: terraform fmt -check
-        continue-on-error: true
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan -no-color -input=false -out planfile
-        continue-on-error: true
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -parallelism=1 planfile
+      - name: Say Hello
+        run: echo "Workflow déclenché !"
