@@ -12,6 +12,7 @@ resource "aws_key_pair" "bastion_key" {
   public_key = file("bastion-key.pub")
 }
 
+
 resource "aws_security_group" "bastion_sg" {
   name   = "bastion_sg"
   vpc_id = module.vpc.vpc_id
