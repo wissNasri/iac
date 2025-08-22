@@ -8,10 +8,7 @@ data "aws_ami" "ubuntu" {
 }
 
 
-resource "aws_key_pair" "bastion_key" {
-  key_name   = "bastion-key"
-  public_key = file("bastion-key.pub")
-}
+
 
 
 resource "aws_security_group" "bastion_sg" {
