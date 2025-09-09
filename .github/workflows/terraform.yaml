@@ -1,52 +1,39 @@
-name: Cloudcore IAC
+name: Terraform Security Scan with Checkov
 
-# Déclenche le workflow uniquement sur push sur main
+# Déclenche le workflow sur push ou pull_request sur main
 on:
   push:
     branches:
       - main
-
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
-  AWS_REGION: eu-north-1
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  terraform:
-    name: Apply Terraform
+  checkov:
+    name: Scan Terraform with Checkov
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./terraform  # fichiers Terraform à la racine
     steps:
-      - name: Checkout source code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      # ---------------------------
+      # Scan Terraform avec Checkov
+      # ---------------------------
+      - name: Run Checkov scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./terraform       # dossier contenant les fichiers Terraform
+          framework: terraform         # spécifie Terraform
+          output_format: json          # format JSON pour rapport
+          output_file_path: ./checkov-tf-report.json
+          quiet: true                  # réduit la verbosité
 
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="bucket=$BUCKET_TF_STATE" \
-            -backend-config="region=$AWS_REGION"
-
-      - name: Terraform Format
-        run: terraform fmt -check
-        continue-on-error: true
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan -no-color -input=false -out planfile
-        continue-on-error: true
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -parallelism=1 planfile
+      # ---------------------------
+      # Upload rapport JSON
+      # ---------------------------
+      - name: Upload Checkov JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-tf-report
+          path: ./checkov-tf-report.json
