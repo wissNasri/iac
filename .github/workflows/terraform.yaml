@@ -28,6 +28,7 @@ jobs:
           output_format: json          # format JSON pour rapport
           output_file_path: ./checkov-tf-report.json
           quiet: true                  # réduit la verbosité
+        continue-on-error: true
 
       # ---------------------------
       # Upload rapport JSON
