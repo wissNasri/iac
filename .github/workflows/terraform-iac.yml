@@ -1,0 +1,78 @@
+# Nom du fichier : .github/workflows/terraform-iac.yml
+
+name: "IAC: Deploy Infrastructure (Secure & Modern)"
+
+on:
+  # Déclencheur automatique pour valider et planifier sur push/PR
+  push:
+    branches: 
+      - main # ou 'master'
+    paths: 
+      - 'terraform/**'
+      - '.github/workflows/terraform-iac.yml'
+  pull_request:
+    branches: 
+      - main # ou 'master'
+    paths: 
+      - 'terraform/**'
+      - '.github/workflows/terraform-iac.yml'
+
+  # Déclencheur manuel qui fait apparaître le bouton "Run workflow"
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: "Terraform Plan & Apply"
+    runs-on: ubuntu-latest
+    
+    # Définit le répertoire de travail pour toutes les commandes 'run'
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+
+    steps:
+    # Étape 1: Télécharge le code du dépôt
+    - name: Checkout source code 
+      uses: actions/checkout@v4
+
+    # Étape 2: Installe Terraform sur la machine virtuelle
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0 # Spécifier une version est une bonne pratique
+
+    # Étape 3: Connexion sécurisée à AWS via OIDC (sans clés secrètes)
+    - name: Configure AWS Credentials (OIDC)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        # !!! IMPORTANT : Remplacez ceci par l'ARN de votre rôle IAM pour l'infra !!!
+        role-to-assume: arn:aws:iam::228578233417:role/oicd
+        aws-region: us-east-1
+
+    # Étape 4: Initialise Terraform (télécharge les providers et lit le backend S3)
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    # Étape 5: Vérifie que le code est bien formaté
+    - name: Terraform Format Check
+      id: fmt
+      run: terraform fmt -check
+
+    # Étape 6: Valide la syntaxe du code Terraform
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    # Étape 7: Crée un plan d'exécution et le sauvegarde dans un fichier
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -input=false -out=planfile
+
+    # Étape 8: Applique le plan (uniquement si déclenché manuellement)
+    - name: "Terraform Apply (Manual Trigger Only)"
+      # La condition de sécurité : ne s'exécute que si on a cliqué sur "Run workflow"
+      if: github.event_name == 'workflow_dispatch'
+      run: terraform apply -auto-approve -input=false planfile
+
