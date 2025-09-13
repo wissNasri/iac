@@ -4,10 +4,10 @@ name: Terraform Security Scan with Checkov
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   checkov:
