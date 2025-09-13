@@ -47,7 +47,7 @@ jobs:
     - name: Configure AWS Credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::228578233417:role/InfraPipelineRole 
+        role-to-assume: arn:aws:iam::228578233417:role/oicd
         aws-region: us-east-1
 
     # ... (le reste de vos étapes ne change pas) ...
