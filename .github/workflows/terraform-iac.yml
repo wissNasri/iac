@@ -5,13 +5,13 @@ name: "IAC: Deploy Infrastructure (Secure & Modern)"
 on:
   push:
     branches: 
-      - master # ou 'master'
+      - main # ou 'master'
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
   pull_request:
     branches: 
-      - master # ou 'master'
+      - main # ou 'master'
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
