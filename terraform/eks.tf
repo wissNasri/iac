@@ -17,6 +17,33 @@ resource "aws_security_group" "node_group_remote_access" {
   }
 }
 
+
+# 1. RÉCUPÉRATION DYNAMIQUE DES ADRESSES IP DE GITHUB
+#    Cette source de données garantit que la liste des IP est toujours à jour.
+# ===================================================================
+data "http" "github_meta" {
+  url = "https://api.github.com/meta"
+}
+
+# ===================================================================
+# 2. DÉFINITION DES LISTES D'IP AUTORISÉES
+# ===================================================================
+locals {
+  # ... (gardez vos autres variables locales comme 'name', 'region', etc. )
+
+  # Décode le JSON de l'API GitHub pour extraire la liste des IP des runners.
+  github_actions_ips = jsondecode(data.http.github_meta.response_body ).actions
+
+  # OPTIONNEL : Si vous voulez aussi un accès direct depuis votre machine locale,
+  # décommentez ce bloc et ajoutez votre IP. Sinon, vous pouvez le laisser commenté.
+  /*
+  admin_ips = [
+    "YOUR_HOME_IP/32", # Remplacez par votre adresse IP publique
+  ]
+  */
+}
+
+
 module "eks" {
 
   source  = "terraform-aws-modules/eks/aws"
@@ -26,6 +53,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
+  cluster_endpoint_public_access_cidrs = local.github_actions_ips
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
