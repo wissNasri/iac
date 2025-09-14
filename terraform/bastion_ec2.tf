@@ -54,7 +54,7 @@ resource "aws_security_group" "allow_user_bastion" {
 resource "aws_instance" "bastion_host" {
   ami                    = data.aws_ami.os_image.id
   instance_type          = var.instance_type
-  key_name               = aws_key_pair.deployer.key_name
+ # key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.allow_user_bastion.id]
   subnet_id              = module.vpc.public_subnets[0]
   iam_instance_profile   = aws_iam_instance_profile.bastion_profile.name  
