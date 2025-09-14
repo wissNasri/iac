@@ -14,10 +14,10 @@ data "aws_ami" "os_image" {
 
 
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
+#resource "aws_key_pair" "deployer" {
+ # key_name   = "deployer-key"
   public_key = file("~/.ssh/id_rsa.pub")
-}
+#}
 
 resource "aws_security_group" "allow_user_bastion" {
   name        = "bastion_host_SG"
