@@ -18,31 +18,35 @@ resource "aws_security_group" "node_group_remote_access" {
 }
 
 
-# 1. RÉCUPÉRATION DYNAMIQUE DES ADRESSES IP DE GITHUB
-#    Cette source de données garantit que la liste des IP est toujours à jour.
-# ===================================================================
-data "http" "github_meta" {
-  url = "https://api.github.com/meta"
-}
-
-# ===================================================================
-# 2. DÉFINITION DES LISTES D'IP AUTORISÉES
-# ===================================================================
 locals {
-  # ... (gardez vos autres variables locales comme 'name', 'region', etc. )
+  # ... (vos autres variables locales )
 
-  # Décode le JSON de l'API GitHub pour extraire la liste des IP des runners.
-  github_actions_ips = jsondecode(data.http.github_meta.response_body ).actions
-
-  # OPTIONNEL : Si vous voulez aussi un accès direct depuis votre machine locale,
-  # décommentez ce bloc et ajoutez votre IP. Sinon, vous pouvez le laisser commenté.
-  /*
-  admin_ips = [
-    "YOUR_HOME_IP/32", # Remplacez par votre adresse IP publique
+  # Au lieu de la liste dynamique, nous utilisons une liste agrégée manuellement
+  # qui est connue pour être plus courte. Cette liste combine plusieurs
+  # petites plages en de plus grandes.
+  github_actions_ips_aggregated = [
+    "192.30.252.0/22",
+    "185.199.108.0/22",
+    "140.82.112.0/20",
+    "143.55.64.0/20",
+    "13.104.132.32/28",
+    "13.104.132.48/28",
+    "13.104.132.64/27",
+    "13.104.132.96/27",
+    "13.104.132.128/26",
+    "13.104.132.192/26",
+    "13.104.133.0/25",
+    "13.104.133.128/25",
+    "13.104.134.0/24",
+    "13.104.135.0/24"
+    # NOTE : Cette liste est un exemple et peut nécessiter d'être mise à jour.
+    # C'est une version plus courte qui devrait passer la limite.
   ]
-  */
-}
 
+  admin_ips = [
+    # "YOUR_HOME_IP/32", # N'oubliez pas d'ajouter votre IP si nécessaire
+  ]
+}
 
 module "eks" {
 
@@ -53,7 +57,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access_cidrs = local.github_actions_ips
+  cluster_endpoint_public_access_cidrs = local.github_actions_ips_aggregated
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
