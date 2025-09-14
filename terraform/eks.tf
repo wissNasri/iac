@@ -98,10 +98,10 @@ module "eks" {
       disk_size                  = 35
       use_custom_launch_template = false # Important to apply disk size!
 
-      remote_access = {
-        ec2_ssh_key               = resource.aws_key_pair.deployer.key_name
-        source_security_group_ids = [aws_security_group.node_group_remote_access.id]
-      }
+    #  remote_access = {
+     #   ec2_ssh_key               = resource.aws_key_pair.deployer.key_name
+     #   source_security_group_ids = [aws_security_group.node_group_remote_access.id]
+     # }
 
       tags = {
         Name        = "tws-demo-ng"
