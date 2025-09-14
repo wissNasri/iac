@@ -5,30 +5,44 @@ name: "IAC: Deploy Infrastructure (Secure & Modern)"
 on:
   push:
     branches: 
-      - main # ou 'master'
+      - main
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
   pull_request:
     branches: 
-      - main # ou 'master'
+      - main
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
+      
+  # ===================================================================
+  # MODIFICATION 1: Ajout d'entrées pour le déclenchement manuel
+  # ===================================================================
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action à exécuter : "apply" ou "destroy"'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+        - apply
+        - destroy
+      
+      # Ajout d'une confirmation pour l'action de destruction
+      confirm_destroy:
+        description: 'Tapez "destroy-confirm" pour confirmer la destruction. (Obligatoire si action=destroy)'
+        required: false # Rendu obligatoire par la logique du job plus bas
 
 jobs:
   terraform:
-    name: "Terraform Plan & Apply"
+    name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
     
-    # ===================================================================
-    # LA SOLUTION EST ICI
-    # Ce bloc accorde au job les permissions nécessaires pour OIDC.
-    # ===================================================================
     permissions:
-      id-token: write  # Permet au workflow de demander un jeton OIDC à GitHub.
-      contents: read   # Permet au workflow de lire le contenu du dépôt (pour le checkout).
+      id-token: write
+      contents: read
 
     defaults:
       run:
@@ -50,24 +64,28 @@ jobs:
         role-to-assume: arn:aws:iam::228578233417:role/oicd
         aws-region: us-east-1
 
-    # ... (le reste de vos étapes ne change pas) ...
-
     - name: Terraform Init
       id: init
       run: terraform init
 
- #   - name: Terraform Format Check
-  #    id: fmt
-   #   run: terraform fmt -check
-
-    #- name: Terraform Validate
-    #  id: validate
-     # run: terraform validate -no-color
-
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color -input=false -out=planfile -lock=false
+      # Le plan s'exécute toujours pour voir les changements, même avant une destruction.
+      run: terraform plan -no-color -input=false -out=planfile
 
-    - name: "Terraform Apply (Manual Trigger Only)"
-      if: github.event_name == 'workflow_dispatch'
+    # ===================================================================
+    # MODIFICATION 2: L'étape Apply ne s'exécute que si l'action est "apply"
+    # ===================================================================
+    - name: "Terraform Apply"
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve -input=false planfile
+
+    # ===================================================================
+    # MODIFICATION 3: Nouvelle étape pour la destruction, avec double confirmation
+    # ===================================================================
+    - name: "Terraform Destroy (DANGEROUS)"
+      if: |
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.action == 'destroy' &&
+        github.event.inputs.confirm_destroy == 'destroy-confirm'
+      run: terraform destroy -auto-approve
