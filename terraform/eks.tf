@@ -42,6 +42,16 @@ module "eks" {
         }
       }
     }
+    github_actions_access = {
+      # L'ARN du rôle IAM que vos workflows utilisent pour se connecter à AWS
+      principal_arn = "arn:aws:iam::228578233417:role/oicd" 
+      policy_associations = {
+        admin_policy = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
   }
 
 
