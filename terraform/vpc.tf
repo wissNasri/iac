@@ -1,4 +1,5 @@
 module "vpc" {
+
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.18.1"
 
@@ -7,6 +8,7 @@ module "vpc" {
   azs             = local.azs
   public_subnets  = local.public_subnets
   private_subnets = local.private_subnets
+
 
   enable_nat_gateway     = true
   single_nat_gateway     = true
@@ -19,6 +21,7 @@ module "vpc" {
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
   }
-
+  # Ensure public subnets auto-assign public IPs
   map_public_ip_on_launch = true
+
 }
