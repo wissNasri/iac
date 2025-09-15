@@ -49,7 +49,7 @@ module "github_runner" {
   }
 
   # Nouvelle structure pour définir les runners
-  runners = {
+  runner_groups = {
     private_runners_group = {
       labels                 = ["self-hosted", "aws-private-runner"]
       instance_type          = "t3.micro"
