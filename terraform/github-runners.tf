@@ -30,7 +30,7 @@ module "github_runners" {
   source  = "philips-labs/github-runner/aws"
   version = "6.7.0"
 
-  github_owner = "WissNasri"
+  github_owner = "wissNasri"
   github_token = data.aws_secretsmanager_secret_version.github_pat.secret_string
 
   vpc_id     = module.vpc.vpc_id
