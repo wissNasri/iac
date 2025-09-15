@@ -18,26 +18,6 @@ resource "aws_security_group" "node_group_remote_access" {
 }
 
 
-locals {
-  # ... (vos autres variables locales)
-
-  # ===================================================================
-  # LISTE MANUELLE, MAIS COMPLÈTE ET OFFICIELLE, DES ADRESSES IP DE GITHUB ACTIONS
-  # Collez ici le résultat exact de la commande curl.
-  # ===================================================================
-  github_actions_ips = [
-    "192.30.252.0/22",
-    "185.199.108.0/22",
-    "140.82.112.0/20",
-    "143.55.64.0/20",
-
-    # ASSUREZ-VOUS DE COPIER LA LISTE COMPLÈTE DE LA COMMANDE CURL
-  ]
-
-  admin_ips = [
-    # "YOUR_HOME_IP/32", # N'oubliez pas d'ajouter votre IP si nécessaire
-  ]
-}
 
 module "eks" {
 
@@ -48,7 +28,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access_cidrs = local.github_actions_ips
+  cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
