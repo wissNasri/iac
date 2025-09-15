@@ -1,4 +1,4 @@
-
+# Fichier: iac/terraform/provider.tf (ou terraform.tf)
 
 terraform {
   # Votre backend S3 existant
@@ -10,13 +10,16 @@ terraform {
     encrypt        = true
   }
 
-  # --- AJOUTEZ CE BLOC CI-DESSOUS ---
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.0" # Force l'utilisation d'une version 5.x
+      # On fixe une version 5.x stable et récente.
+      version = "~> 5.40.0" 
     }
   }
 }
 
-
+# Votre configuration de provider existante
+provider "aws" {
+  region = local.region
+}
