@@ -31,7 +31,7 @@ resource "aws_security_group" "dedicated_runner_sg" {
 # 2. Instance EC2 dédiée
 resource "aws_instance" "dedicated_github_runner" {
   ami           = data.aws_ami.os_image.id 
-  instance_type = "t2.micro" # ⚠️ Free Tier. Change si tu veux plus puissant
+  instance_type = "t3.micro" # ⚠️ Free Tier. Change si tu veux plus puissant
 
   # Placement dans un subnet PUBLIC
   subnet_id = module.vpc.public_subnets[0]
