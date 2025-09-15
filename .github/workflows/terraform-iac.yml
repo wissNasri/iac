@@ -7,13 +7,13 @@ on:
 
   push:
     branches: 
-      - master
+      - main 
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
   pull_request:
     branches: 
-      - master
+      - main 
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
