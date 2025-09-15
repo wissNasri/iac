@@ -26,7 +26,7 @@ resource "aws_security_group" "dedicated_runner_sg" {
 resource "aws_instance" "dedicated_github_runner" {
   # Réutilise l'AMI Ubuntu que vous avez définie pour votre bastion
   ami           = data.aws_ami.os_image.id 
-  instance_type = "t3.medium"
+  instance_type = "t3.micro"
 
   # --- Point clé de la sécurité : placement dans un subnet PRIVÉ ---
   subnet_id = module.vpc.private_subnets[0] 
