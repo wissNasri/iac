@@ -28,7 +28,7 @@ resource "aws_security_group" "self_hosted_runner_sg" {
 # 3. Utiliser le module Terraform pour créer les runners
 module "github_runners" {
   source  = "philips-labs/github-runner/aws"
-  version = "2.2.1"
+  version = "6.7.0"
 
   github_owner = "WissNasri"
   github_token = data.aws_secretsmanager_secret_version.github_pat.secret_string
