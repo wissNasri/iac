@@ -48,7 +48,7 @@ module "github_runner" {
   }
 
   # --- CORRECTION : Le module attend "runner_groups", pas "runners" ---
-  runners = {
+  runner_os = {
     private_runners_group = {
       labels                 = ["self-hosted", "aws-private-runner"]
       instance_type          = "t3.micro" # J'ai gardé t3.micro comme vous l'avez mis
