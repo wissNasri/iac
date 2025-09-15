@@ -16,17 +16,10 @@ resource "aws_security_group" "node_group_remote_access" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-data "external" "github_cidrs_aggregator" {
-  program = ["python3", "${path.module}/aggregate_cidrs.py"]
-}
 
 
-locals {
- 
-  github_actions_ips_aggregated = split(",", data.external.github_cidrs_aggregator.result.aggregated_cidrs_string)
 
-  
-}
+
 
 module "eks" {
 
@@ -35,9 +28,8 @@ module "eks" {
 
   cluster_name                    = local.name
   cluster_version                 = "1.31"
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access  = false
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access_cidrs = local.github_actions_ips_aggregated
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
