@@ -9,6 +9,7 @@ data "aws_secretsmanager_secret_version" "github_pat" {
 
 # 2. Créer un groupe de sécurité pour les runners
 resource "aws_security_group" "self_hosted_runner_sg" {
+
   name        = "self-hosted-runner-sg"
   description = "Security group for self-hosted GitHub runners"
   vpc_id      = module.vpc.vpc_id
