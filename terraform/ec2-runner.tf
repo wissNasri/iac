@@ -4,7 +4,7 @@
 # 1. Groupe de sécurité pour le runner
 resource "aws_security_group" "dedicated_runner_sg" {
   name        = "dedicated-runner-sg"
-  description = "Groupe de sécurité pour le runner GitHub dédié"
+  description = "Security group for dedicated GitHub runner"
   vpc_id      = module.vpc.vpc_id
 
   # Aucune règle entrante. L'instance est inaccessible depuis l'extérieur.
