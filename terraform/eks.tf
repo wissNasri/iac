@@ -29,6 +29,8 @@ locals {
     "185.199.108.0/22",
     "140.82.112.0/20",
     "143.55.64.0/20",
+    "2a0a:a440::/29",
+    "2606:50c0::/32"
     # NOTE : Cette liste est un exemple et peut nécessiter d'être mise à jour.
     # C'est une version plus courte qui devrait passer la limite.
   ]
