@@ -17,7 +17,7 @@ resource "aws_security_group" "node_group_remote_access" {
   }
 }
 data "external" "github_cidrs_aggregator" {
-  program = ["python3", "${path.root}/scripts/aggregate_cidrs.py"]
+  program = ["python3", "${path.module}/aggregate_cidrs.py"]
 }
 
 
