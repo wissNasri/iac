@@ -1,5 +1,5 @@
 # Fichier: iac/terraform/ec2-runner.tf
-# Description: Provisionne l'instance EC2 dédiée pour le runner.
+# Description: Provisionne l'instance EC2 dédiée pour le runner avec accès SSH (Option 1)
 
 # 1. Groupe de sécurité pour le runner
 resource "aws_security_group" "dedicated_runner_sg" {
@@ -7,21 +7,21 @@ resource "aws_security_group" "dedicated_runner_sg" {
   description = "Security group for dedicated GitHub runner"
   vpc_id      = module.vpc.vpc_id
 
-  # Aucune règle entrante. L'instance est inaccessible depuis l'extérieur.
-  
-  # Règle de sortie pour contacter GitHub, les dépôts de paquets, etc.
+  # Autoriser SSH uniquement depuis ton IP publique
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["YOUR_PUBLIC_IP/32"] # ⚠️ remplace par ton IP publique
+  }
+
+  # Sortie vers internet (GitHub, apt, etc.)
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-ingress {
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = ["YOUR_PUBLIC_IP/32"] # ex: 197.x.x.x/32 pour restreindre
-}
 
   tags = {
     Name = "SG-Dedicated-Runner"
@@ -30,23 +30,22 @@ ingress {
 
 # 2. Instance EC2 dédiée
 resource "aws_instance" "dedicated_github_runner" {
-  # Réutilise l'AMI Ubuntu que vous avez définie pour votre bastion
   ami           = data.aws_ami.os_image.id 
-  instance_type = "c7i-flex.large"
+  instance_type = "t2.micro" # ⚠️ Free Tier. Change si tu veux plus puissant
 
-  # --- Point clé de la sécurité : placement dans un subnet PRIVÉ ---
-  subnet_id = module.vpc.public_subnets[0] 
+  # Placement dans un subnet PUBLIC
+  subnet_id = module.vpc.public_subnets[0]
 
-  # Pas besoin d'IP publique, ce qui renforce la sécurité
+  # Attribution d’une IP publique
   associate_public_ip_address = true
 
-  # Attache le rôle IAM minimaliste créé dans iam-runner.tf
+  # Attache le rôle IAM minimaliste
   iam_instance_profile = aws_iam_instance_profile.self_hosted_runner_profile.name
   
   # Attache le groupe de sécurité
   vpc_security_group_ids = [aws_security_group.dedicated_runner_sg.id]
 
-  # Exécute le script de configuration au premier démarrage
+  # Script de configuration au premier démarrage
   user_data = file("${path.module}/configure-dedicated-runner.sh")
   
   tags = {
