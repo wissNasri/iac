@@ -1,15 +1,12 @@
-# Fichier: iac/terraform/github-runners.tf
-# Description: Version finale et correcte pour le module "github-aws-runners/github-runner/aws" v6.7.0
-
 # ===================================================================
-# 1. RÉCUPÉRER LE TOKEN GITHUB DEPUIS AWS SECRETS MANAGER (INCHANGÉ)
+# 1. RÉCUPÉRER LE TOKEN GITHUB DEPUIS AWS SECRETS MANAGER
 # ===================================================================
 data "aws_secretsmanager_secret_version" "github_pat" {
   secret_id = "self_hosted_runner_pat"
 }
 
 # ===================================================================
-# 2. CRÉER UN GROUPE DE SÉCURITÉ POUR LES RUNNERS (INCHANGÉ)
+# 2. CRÉER UN GROUPE DE SÉCURITÉ POUR LES RUNNERS
 # ===================================================================
 resource "aws_security_group" "self_hosted_runner_sg" {
   name        = "self-hosted-runner-sg"
@@ -29,38 +26,33 @@ resource "aws_security_group" "self_hosted_runner_sg" {
 }
 
 # ===================================================================
-# 3. MODULE TERRAFORM POUR CRÉER LES RUNNERS (CORRIGÉ SELON LES ERREURS)
+# 3. MODULE TERRAFORM POUR CRÉER LES RUNNERS (VERSION CORRIGÉE)
 # ===================================================================
 module "github_runner" {
-  # Votre source et version
   source  = "github-aws-runners/github-runner/aws"
   version = "6.7.0"
 
-  # Argument requis par ce module
   aws_region = local.region
 
-  # --- CORRECTION : Le module attend "github_app", pas "github_auth" ---
+  # Configuration d'authentification GitHub
   github_app = {
-    key_base64 = ""
-    id         = ""
-    token      = data.aws_secretsmanager_secret_version.github_pat.secret_string
-    owner      = "WissNasri"
+    key_base64     = null  # Remplacer si utilisation GitHub App
+    id             = null  # Remplacer si utilisation GitHub App
+    webhook_secret = null  # Remplacer si utilisation GitHub App
   }
 
-  # --- CORRECTION : Le module attend "runner_groups", pas "runners" ---
-  runner_os = {
-    private_runners_group = {
-      labels                 = ["self-hosted", "aws-private-runner"]
-      instance_type          = "t3.micro" # J'ai gardé t3.micro comme vous l'avez mis
-      vpc_security_group_ids = [aws_security_group.self_hosted_runner_sg.id]
-    }
-  }
+  # Alternative avec token PAT (décommentez si vous utilisez un token)
+  # github_token = data.aws_secretsmanager_secret_version.github_pat.secret_string
 
-  # Configuration réseau
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  # Configuration des runners
+  runner_extra_labels = "self-hosted,aws-private-runner"
+  instance_type       = "t3.medium"
+  subnet_ids         = module.vpc.private_subnets
+  vpc_id             = module.vpc.vpc_id
 
-  # Tags
+  # Sécurité
+  security_group_ids = [aws_security_group.self_hosted_runner_sg.id]
+
   tags = {
     Name = "GitHub-Self-Hosted-Runner"
   }
