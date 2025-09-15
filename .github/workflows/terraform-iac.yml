@@ -56,15 +56,7 @@ jobs:
     - name: Checkout source code 
       uses: actions/checkout@v4
 
-    # ===================================================================
-    #                AJOUTEZ CES ÉTAPES ICI
-    # ===================================================================
-    - name: Setup Python and dependencies
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    - run: pip install requests netaddr
-    # ===================================================================
+
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -79,7 +71,7 @@ jobs:
 
     - name: Terraform Init
       id: init
-      run: terraform init
+      run: terraform init  -upgrade 
 
     - name: Terraform Plan
       id: plan
