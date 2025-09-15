@@ -29,7 +29,8 @@ resource "aws_iam_policy" "read_github_pat_for_runner" {
       Effect   = "Allow",
       # IMPORTANT: Remplacez par l'ARN exact de votre secret pour une sécurité maximale.
       # Vous pouvez trouver l'ARN en cliquant sur votre secret dans la console AWS.
-      Resource = "arn:aws:iam::228578233417:secret:self_hosted_runner_pat-XXXXXX" 
+      Resource = "arn:aws:secretsmanager:us-east-1:228578233417:secret:self_hosted_runner_pat-XXXXXX" 
+
     }]
   })
 }
