@@ -1,5 +1,5 @@
 #!/bin/bash
-# Description: Script de configuration pour le runner GitHub dédié.
+# Description: Script de configuration FINAL et CORRIGÉ pour le runner GitHub dédié.
 # Exécuté par user_data sur l'instance EC2.
 
 # --- Variables de configuration ---
@@ -25,6 +25,12 @@ curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/s
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs ) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt-get update && sudo apt-get install -y terraform
 
+# --- Configuration du Runner GitHub (PARTIE CORRIGÉE) ---
+
+# Créer le dossier et s'y déplacer
+mkdir -p "$RUNNER_DIR"
+cd "$RUNNER_DIR"
+
 # Récupérer le token d'enregistrement de manière sécurisée
 echo "Récupération du token d'enregistrement depuis AWS Secrets Manager..."
 GH_TOKEN=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --region "$AWS_REGION" | jq -r '.SecretString')
@@ -33,12 +39,27 @@ if [ -z "$GH_TOKEN" ]; then
     echo "ERREUR: Impossible de récupérer le token depuis Secrets Manager. Vérifiez le nom du secret et les permissions IAM." >&2
     exit 1
 fi
-# --- Configuration du Runner GitHub ---
 
-mkdir actions-runner; cd actions-runner
-Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v2.328.0/actions-runner-win-x64-2.328.0.zip -OutFile actions-runner-win-x64-2.328.0.zip
-if((Get-FileHash -Path actions-runner-win-x64-2.328.0.zip -Algorithm SHA256).Hash.ToUpper() -ne 'a73ae192b8b2b782e1d90c08923030930b0b96ed394fe56413a073cc6f694877'.ToUpper()){ throw 'Computed checksum did not match' }
-Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/actions-runner-win-x64-2.328.0.zip", "$PWD")
-./config.cmd --url https://github.com/wissNasri/iac --token BP6BWZZBMFBULUKZUNSSGG3IZCVPG
-./run.cmd
-runs-on: self-hosted
+# Télécharger la dernière version du logiciel du runner pour LINUX
+echo "Téléchargement du logiciel du runner pour Linux..."
+LATEST_VERSION=$(curl -s "https://api.github.com/repos/actions/runner/releases/latest" | jq -r '.tag_name' | sed 's/v//' )
+RUNNER_TAR_BALL="actions-runner-linux-x64-${LATEST_VERSION}.tar.gz"
+curl -o "$RUNNER_TAR_BALL" -L "https://github.com/actions/runner/releases/download/v${LATEST_VERSION}/$RUNNER_TAR_BALL"
+
+# Extraire l'archive .tar.gz (commande Linux )
+tar xzf "./$RUNNER_TAR_BALL"
+
+# Donner les bonnes permissions au dossier
+chown -R ubuntu:ubuntu "$RUNNER_DIR"
+
+# Configurer le runner en utilisant le script .sh (commande Linux)
+echo "Configuration du runner..."
+# On exécute en tant qu'utilisateur 'ubuntu' pour éviter les problèmes de permissions
+sudo -u ubuntu ./config.sh --url "https://github.com/${GH_OWNER}/${GH_REPO}" --token "$GH_TOKEN" --name "dedicated-runner-$(hostname )" --labels "$RUNNER_LABELS" --unattended --replace
+
+# Installer le runner en tant que service pour qu'il redémarre automatiquement
+echo "Installation et démarrage du service du runner..."
+sudo ./svc.sh install ubuntu
+sudo ./svc.sh start
+
+echo "Configuration du runner dédiée terminée avec succès."
