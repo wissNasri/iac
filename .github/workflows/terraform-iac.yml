@@ -41,6 +41,7 @@ jobs:
     name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
     
+    
     permissions:
       id-token: write
       contents: read
@@ -53,6 +54,16 @@ jobs:
     steps:
     - name: Checkout source code 
       uses: actions/checkout@v4
+
+    # ===================================================================
+    #                AJOUTEZ CES ÉTAPES ICI
+    # ===================================================================
+    - name: Setup Python and dependencies
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - run: pip install requests netaddr
+    # ===================================================================
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
