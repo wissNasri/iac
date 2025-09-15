@@ -16,7 +16,23 @@ resource "aws_security_group" "node_group_remote_access" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+data "external" "github_cidrs_aggregator" {
+  program = ["python3", "${path.module}/aggregate_cidrs.py"]
+}
 
+# ===================================================================
+# 2. DÉFINIR LES LISTES D'IP AUTORISÉES
+# ===================================================================
+locals {
+  # ... (vos autres variables locales)
+
+  # On utilise le résultat du script externe.
+  github_actions_ips_aggregated = data.external.github_cidrs_aggregator.result.aggregated_cidrs
+
+  admin_ips = [
+    # "YOUR_HOME_IP/32", # Ajoutez votre IP si nécessaire
+  ]
+}
 
 
 module "eks" {
@@ -28,7 +44,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
+  cluster_endpoint_public_access_cidrs = local.github_actions_ips_aggregated
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
