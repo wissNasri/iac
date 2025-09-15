@@ -34,10 +34,10 @@ resource "aws_security_group" "self_hosted_runner_sg" {
 # 3. MODULE TERRAFORM POUR CRÉER LES RUNNERS (VERSION FINALE ET CORRIGÉE)
 # Ce bloc contient le nom de module et la structure d'arguments corrects pour la v6.1.0.
 # ===================================================================
-module "github_runners" {
+module "github_runner" {
   # Le nom correct du module sur le registre Terraform
-  source  = "terraform-aws-modules/runners/aws"
-  version = "6.1.0"
+  source  = "terraform-aws-modules/runner/aws"   
+  version = "6.7.0"
 
   # Argument requis par le module pour connaître la région
   aws_region = local.region
