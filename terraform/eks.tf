@@ -19,20 +19,20 @@ resource "aws_security_group" "node_group_remote_access" {
 
 
 locals {
-  # ... (vos autres variables locales )
+  # ... (vos autres variables locales)
 
-  # Au lieu de la liste dynamique, nous utilisons une liste agrégée manuellement
-  # qui est connue pour être plus courte. Cette liste combine plusieurs
-  # petites plages en de plus grandes.
-  github_actions_ips_aggregated = [
+  # ===================================================================
+  # LISTE MANUELLE, MAIS COMPLÈTE ET OFFICIELLE, DES ADRESSES IP DE GITHUB ACTIONS
+  # Collez ici le résultat exact de la commande curl.
+  # ===================================================================
+  github_actions_ips = [
     "192.30.252.0/22",
     "185.199.108.0/22",
     "140.82.112.0/20",
     "143.55.64.0/20",
     "2a0a:a440::/29",
-    "2606:50c0::/32"
-    # NOTE : Cette liste est un exemple et peut nécessiter d'être mise à jour.
-    # C'est une version plus courte qui devrait passer la limite.
+    "2605:d000:1::/48"
+    # ASSUREZ-VOUS DE COPIER LA LISTE COMPLÈTE DE LA COMMANDE CURL
   ]
 
   admin_ips = [
@@ -49,7 +49,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access_cidrs = local.github_actions_ips_aggregated
+  cluster_endpoint_public_access_cidrs = local.github_actions_ips
 
   //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
