@@ -10,16 +10,6 @@ terraform {
     encrypt        = true
   }
 
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      # On fixe une version 5.x stable et récente.
-      version = "~> 5.40.0" 
-    }
-  }
+
 }
 
-# Votre configuration de provider existante
-provider "aws" {
-  region = local.region
-}
