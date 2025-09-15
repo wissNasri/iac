@@ -20,23 +20,13 @@ data "external" "github_cidrs_aggregator" {
   program = ["python3", "${path.root}/scripts/aggregate_cidrs.py"]
 }
 
-# ===================================================================
-# 2. TRAITEMENT DU RÉSULTAT DU SCRIPT
-# ===================================================================
-locals {
-  # ... (gardez vos autres variables locales comme 'name', 'region', etc.)
 
-  # --- LA MODIFICATION CLÉ ---
-  # 1. On récupère la chaîne de caractères depuis la sortie du script.
-  # 2. On utilise la fonction split() pour la re-transformer en une vraie liste Terraform.
+locals {
+ 
   github_actions_ips_aggregated = split(",", data.external.github_cidrs_aggregator.result.aggregated_cidrs_string)
 
-  # Optionnel : pour ajouter votre propre IP pour un accès direct
-  admin_ips = [
-    # "YOUR_HOME_IP/32", # Remplacez par votre adresse IP publique si besoin
-  ]
+  
 }
-
 
 module "eks" {
 
