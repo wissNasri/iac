@@ -36,7 +36,7 @@ resource "aws_security_group" "self_hosted_runner_sg" {
 # ===================================================================
 module "github_runner" {
   # Le nom correct du module sur le registre Terraform
-  source  = "terraform-aws-modules/runner/aws"   
+  source  = "github-aws-runners/github-runner/aws"   
   version = "6.7.0"
 
   # Argument requis par le module pour connaître la région
