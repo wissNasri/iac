@@ -34,25 +34,30 @@ module "github_runner" {
 
   aws_region = local.region
 
-  # Configuration d'authentification GitHub
+  # Authentication - using PAT token from Secrets Manager
   github_app = {
-    key_base64     = null  # Remplacer si utilisation GitHub App
-    id             = null  # Remplacer si utilisation GitHub App
-    webhook_secret = null  # Remplacer si utilisation GitHub App
+    key_base64     = null  # Required if using GitHub App instead of PAT
+    id             = null  # Required if using GitHub App instead of PAT
+    webhook_secret = null  # Required if using GitHub App instead of PAT
   }
 
-  # Alternative avec token PAT (décommentez si vous utilisez un token)
+  # Alternative: Use PAT token directly (uncomment if not using GitHub App)
   # github_token = data.aws_secretsmanager_secret_version.github_pat.secret_string
 
-  # Configuration des runners
+  # Runner configuration
+  instance_types = ["t3.medium"]  # Note: Now a list of strings :cite[9]
+  
+  # Network configuration
+  subnet_ids = module.vpc.private_subnets
+  vpc_id     = module.vpc.vpc_id
+
+  # Security groups - use vpc_security_group_ids instead of security_group_ids :cite[10]
+  vpc_security_group_ids = [aws_security_group.self_hosted_runner_sg.id]
+
+  # Optional: Additional labels for the runners
   runner_extra_labels = "self-hosted,aws-private-runner"
-  instance_type       = "t3.medium"
-  subnet_ids         = module.vpc.private_subnets
-  vpc_id             = module.vpc.vpc_id
 
-  # Sécurité
-  security_group_ids = [aws_security_group.self_hosted_runner_sg.id]
-
+  # Tags for all resources
   tags = {
     Name = "GitHub-Self-Hosted-Runner"
   }
