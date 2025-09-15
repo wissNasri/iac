@@ -52,7 +52,7 @@ module "github_runner" {
   runners = {
     private_runners_group = {
       labels                 = ["self-hosted", "aws-private-runner"]
-      instance_type          = "t3.medium"
+      instance_type          = "t3.micro"
       vpc_security_group_ids = [aws_security_group.self_hosted_runner_sg.id]
     }
   }
