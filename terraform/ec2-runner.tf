@@ -16,6 +16,12 @@ resource "aws_security_group" "dedicated_runner_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+ingress {
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = ["YOUR_PUBLIC_IP/32"] # ex: 197.x.x.x/32 pour restreindre
+}
 
   tags = {
     Name = "SG-Dedicated-Runner"
@@ -29,10 +35,10 @@ resource "aws_instance" "dedicated_github_runner" {
   instance_type = "c7i-flex.large"
 
   # --- Point clé de la sécurité : placement dans un subnet PRIVÉ ---
-  subnet_id = module.vpc.private_subnets[0] 
+  subnet_id = module.vpc.public_subnets[0] 
 
   # Pas besoin d'IP publique, ce qui renforce la sécurité
-  associate_public_ip_address = false
+  associate_public_ip_address = true
 
   # Attache le rôle IAM minimaliste créé dans iam-runner.tf
   iam_instance_profile = aws_iam_instance_profile.self_hosted_runner_profile.name
