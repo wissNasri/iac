@@ -20,18 +20,9 @@ data "external" "github_cidrs_aggregator" {
   program = ["python3", "${path.module}/aggregate_cidrs.py"]
 }
 
-# ===================================================================
-# 2. DÉFINIR LES LISTES D'IP AUTORISÉES
-# ===================================================================
 locals {
-  # ... (vos autres variables locales)
-
-  # On utilise le résultat du script externe.
-  github_actions_ips_aggregated = data.external.github_cidrs_aggregator.result.aggregated_cidrs
-
-  admin_ips = [
-    # "YOUR_HOME_IP/32", # Ajoutez votre IP si nécessaire
-  ]
+  # Convert string CSV from Python into list for Terraform
+  github_actions_ips_aggregated = split(",", data.external.github_cidrs_aggregator.result.aggregated_cidrs)
 }
 
 
