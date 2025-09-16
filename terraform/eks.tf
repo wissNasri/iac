@@ -31,23 +31,31 @@ module "eks" {
   cluster_endpoint_public_access  = false
   cluster_endpoint_private_access = true
 
-  //access entry for any specific user or role (jenkins controller instance)
   access_entries = {
-    # One access entry with a policy associated
-    example = {
+    # Entrée existante pour le bastion (on la garde)
+    bastion_access = {
       principal_arn = aws_iam_role.bastion_eks_role.arn
-
       policy_associations = {
-        example = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            type = "cluster"
-          }
+        admin_policy = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    },
+    
+    # NOUVELLE entrée pour la pipeline GitHub Actions via OIDC
+    github_actions_oidc_access = {
+      # L'ARN du rôle que vous avez créé manuellement pour OIDC
+      principal_arn = "arn:aws:iam::228578233417:role/oicd"
+      policy_associations = {
+        admin_policy = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
         }
       }
     }
-  
   }
+
 
 
   cluster_security_group_additional_rules = {
