@@ -103,7 +103,7 @@ module "eks" {
     tws-demo-ng = {
       min_size     = 1
       max_size     = 3
-      desired_size = 2
+      desired_size = 3
 
       instance_types = ["m7i-flex.large"]
       capacity_type  = "SPOT"
