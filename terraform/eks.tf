@@ -46,7 +46,7 @@ module "eks" {
     # NOUVELLE entrée pour la pipeline GitHub Actions via OIDC
     github_actions_oidc_access = {
       # L'ARN du rôle que vous avez créé manuellement pour OIDC
-      principal_arn = "arn:aws:iam::228578233417:role/oicd"
+      principal_arn = aws_iam_role.self_hosted_runner_role.arn
       policy_associations = {
         admin_policy = {
           policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
