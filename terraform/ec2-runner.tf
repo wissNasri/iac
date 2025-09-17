@@ -51,4 +51,6 @@ resource "aws_instance" "dedicated_github_runner" {
   tags = {
     Name = "Dedicated-GitHub-Runner"
   }
+  depends_on = [module.vpc]
+
 }
