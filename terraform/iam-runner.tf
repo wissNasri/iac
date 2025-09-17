@@ -1,4 +1,4 @@
-# Fichier: iac/terraform/iam-runner.tf (Version avec AdministratorAccess)
+# Fichier: terraform/iam-runner.tf
 
 # 1. Rôle IAM pour l'instance du runner (inchangé)
 resource "aws_iam_role" "self_hosted_runner_role" {
@@ -35,20 +35,21 @@ resource "aws_iam_role_policy_attachment" "runner_can_read_pat" {
   policy_arn = aws_iam_policy.read_github_pat_for_runner.arn
 }
 
-# ===================================================================
-# --- MODIFICATION CLÉ ---
-# 4. Attacher la politique Administrateur au rôle du runner.
-#    Cela donne au runner toutes les permissions sur votre compte AWS.
-#    C'est parfait pour le débogage, mais devra être restreint plus tard.
-# ===================================================================
+# 4. Attacher la politique Administrateur (conservée comme demandé)
 resource "aws_iam_role_policy_attachment" "runner_admin_access" {
   role       = aws_iam_role.self_hosted_runner_role.name
-  # ARN de la politique gérée par AWS pour un accès administrateur complet
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
-# ===================================================================
 
-# 5. Profil d'instance (inchangé)
+# --- AJOUT NÉCESSAIRE POUR L'ACCÈS SÉCURISÉ ---
+# 5. Attacher la politique pour AWS Systems Manager Session Manager
+resource "aws_iam_role_policy_attachment" "runner_ssm_access" {
+  role       = aws_iam_role.self_hosted_runner_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+# --- FIN DE L'AJOUT ---
+
+# 6. Profil d'instance (inchangé)
 resource "aws_iam_instance_profile" "self_hosted_runner_profile" {
   name = "GitHubRunnerInstanceProfile"
   role = aws_iam_role.self_hosted_runner_role.name
