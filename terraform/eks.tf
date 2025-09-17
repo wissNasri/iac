@@ -106,7 +106,7 @@ module "eks" {
       desired_size = 3
 
       instance_types = ["m7i-flex.large"]
-      capacity_type  = "On-Demand"
+      capacity_type  = "ON_DEMAND"
 
       disk_size                  = 35
       use_custom_launch_template = false # Important to apply disk size!
