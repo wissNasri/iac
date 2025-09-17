@@ -68,5 +68,6 @@ resource "aws_instance" "bastion_host" {
     volume_size = 20
     volume_type = "gp3"
   }
+  depends_on = [module.vpc]
 
 }
