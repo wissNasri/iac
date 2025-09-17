@@ -141,3 +141,7 @@ data "aws_instances" "eks_nodes" {
 
   depends_on = [module.eks]
 }
+output "eks_managed_node_groups_id" {
+  description = "L'ID du node group EKS managé, utilisé pour créer une dépendance explicite."
+  value       = module.eks.eks_managed_node_groups["tws-demo-ng"].id
+}
