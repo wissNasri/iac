@@ -31,35 +31,30 @@
             "Resource": "arn:aws:dynamodb:us-east-1:228578233417:table/terraform-locks"
         },
         {
-            "Sid": "IAMManagementForAddonRoles",
+            "Sid": "IAMWriteManagementForAddonRoles",
             "Effect": "Allow",
             "Action": [
                 "iam:CreateRole",
                 "iam:DeleteRole",
                 "iam:AttachRolePolicy",
                 "iam:DetachRolePolicy",
-                "iam:GetRole",
-                "iam:PassRole",
                 "iam:CreatePolicy",
                 "iam:DeletePolicy",
-                "iam:GetPolicy"
+                "iam:PassRole"
             ],
             "Resource": [
                 "arn:aws:iam::228578233417:role/AmazonEKS*",
                 "arn:aws:iam::228578233417:policy/ExternalDNSPolicyForEKS",
                 "arn:aws:iam::228578233417:policy/AWSLoadBalancerControllerIAMPolicy"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "iam:PermissionsBoundary": "arn:aws:iam::228578233417:policy/RunnerPermissionsBoundary"
-                }
-            }
+            ]
         },
         {
-            "Sid": "ReadOnlyForTerraformDataSource",
+            "Sid": "IAMReadOnlyAndDataSource",
             "Effect": "Allow",
             "Action": [
                 "iam:GetOpenIDConnectProvider",
+                "iam:GetPolicy",
+                "iam:GetRole",
                 "route53:ListHostedZonesByName"
             ],
             "Resource": "*"
