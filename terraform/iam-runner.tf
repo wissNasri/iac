@@ -1,4 +1,4 @@
-# Fichier: terraform/iam-runner.tf (Version Sécurisée)
+# Fichier: terraform/iam-runner.tf
 
 # 1. Rôle IAM pour l'instance du runner (inchangé)
 resource "aws_iam_role" "self_hosted_runner_role" {
@@ -14,33 +14,42 @@ resource "aws_iam_role" "self_hosted_runner_role" {
   })
 }
 
-# 2. NOUVELLE POLITIQUE IAM SUR MESURE
-#    Cette politique est définie dans le fichier JSON que nous venons de créer.
-resource "aws_iam_policy" "github_runner_least_privilege_policy" {
-  name        = "GitHubRunnerLeastPrivilegePolicy"
-  description = "Politique de moindre privilège pour le runner GitHub EC2."
-  policy      = file("${path.module}/iam-runner-policy.json")
+# 2. Politique pour lire le PAT (inchangé)
+resource "aws_iam_policy" "read_github_pat_for_runner" {
+  name        = "ReadGitHubPATForRunner"
+  description = "Permet au runner de lire le secret du PAT GitHub"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action   = "secretsmanager:GetSecretValue",
+      Effect   = "Allow",
+      Resource = "*" 
+    }]
+  })
 }
 
-# 3. ATTACHER LA NOUVELLE POLITIQUE RESTREINTE
-#    Nous attachons la politique sur mesure au rôle du runner.
-resource "aws_iam_role_policy_attachment" "runner_least_privilege_attachment" {
+# 3. Attacher la politique de lecture du PAT (inchangé)
+resource "aws_iam_role_policy_attachment" "runner_can_read_pat" {
   role       = aws_iam_role.self_hosted_runner_role.name
-  policy_arn = aws_iam_policy.github_runner_least_privilege_policy.arn
+  policy_arn = aws_iam_policy.read_github_pat_for_runner.arn
 }
 
-# 4. SUPPRESSION DE L'ANCIENNE POLITIQUE
-#    La ligne attachant "AdministratorAccess" est supprimée.
-#
-# resource "aws_iam_role_policy_attachment" "runner_admin_access" {
-#   role       = aws_iam_role.self_hosted_runner_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-# }
-#
-# NOTE : La politique pour lire le PAT et celle pour SSM sont maintenant intégrées
-# dans le fichier JSON principal pour une gestion centralisée.
+# 4. Attacher la politique Administrateur (conservée comme demandé)
+resource "aws_iam_role_policy_attachment" "runner_admin_access" {
+  role       = aws_iam_role.self_hosted_runner_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
 
-# 5. Profil d'instance (inchangé)
+# --- AJOUT NÉCESSAIRE POUR L'ACCÈS SÉCURISÉ ---
+# 5. Attacher la politique pour AWS Systems Manager Session Manager
+resource "aws_iam_role_policy_attachment" "runner_ssm_access" {
+  role       = aws_iam_role.self_hosted_runner_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+# --- FIN DE L'AJOUT ---
+
+# 6. Profil d'instance (inchangé)
 resource "aws_iam_instance_profile" "self_hosted_runner_profile" {
   name = "GitHubRunnerInstanceProfile"
   role = aws_iam_role.self_hosted_runner_role.name
