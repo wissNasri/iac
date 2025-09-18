@@ -2,13 +2,13 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "EKSConnectAndRead",
+            "Sid": "EKSKubeconfigAccess",
             "Effect": "Allow",
             "Action": "eks:DescribeCluster",
             "Resource": "arn:aws:eks:us-east-1:228578233417:cluster/tws-eks-cluster"
         },
         {
-            "Sid": "TerraformBackendAccess",
+            "Sid": "TerraformStateBackend",
             "Effect": "Allow",
             "Action": [
                 "s3:GetObject",
@@ -17,11 +17,11 @@
             ],
             "Resource": [
                 "arn:aws:s3:::terraform-s3-backend-tws-hackathon111",
-                "arn:aws:s3:::terraform-s3-backend-tws-hackathon111/*"
+                "arn:aws:s3:::terraform-s3-backend-tws-hackathon111/apps/*"
             ]
         },
         {
-            "Sid": "TerraformLockingAccess",
+            "Sid": "DynamoDBLocking",
             "Effect": "Allow",
             "Action": [
                 "dynamodb:GetItem",
@@ -31,31 +31,24 @@
             "Resource": "arn:aws:dynamodb:us-east-1:228578233417:table/terraform-locks"
         },
         {
-            "Sid": "IAMWriteManagementForAddonRoles",
+            "Sid": "IAMPassRoleForOIDC",
             "Effect": "Allow",
-            "Action": [
-                "iam:CreateRole",
-                "iam:DeleteRole",
-                "iam:AttachRolePolicy",
-                "iam:DetachRolePolicy",
-                "iam:CreatePolicy",
-                "iam:DeletePolicy",
-                "iam:PassRole"
-            ],
+            "Action": "iam:PassRole",
             "Resource": [
-                "arn:aws:iam::228578233417:role/AmazonEKS*",
-                "arn:aws:iam::228578233417:policy/ExternalDNSPolicyForEKS",
-                "arn:aws:iam::228578233417:policy/AWSLoadBalancerControllerIAMPolicy"
+                "arn:aws:iam::228578233417:role/AmazonEKSLoadBalancerControllerRole",
+                "arn:aws:iam::228578233417:role/AmazonEKS_EBS_CSI_DriverRole"
             ]
         },
         {
-            "Sid": "IAMReadOnlyAndDataSource",
+            "Sid": "ALBControllerPermissions",
             "Effect": "Allow",
             "Action": [
-                "iam:GetOpenIDConnectProvider",
-                "iam:GetPolicy",
-                "iam:GetRole",
-                "route53:ListHostedZonesByName"
+                "ec2:CreateSecurityGroup",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:CreateListener",
+                "iam:CreateServiceLinkedRole"
             ],
             "Resource": "*"
         }
