@@ -1,0 +1,68 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "EKSConnectAndRead",
+            "Effect": "Allow",
+            "Action": "eks:DescribeCluster",
+            "Resource": "arn:aws:eks:us-east-1:228578233417:cluster/tws-eks-cluster"
+        },
+        {
+            "Sid": "TerraformBackendAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::terraform-s3-backend-tws-hackathon111",
+                "arn:aws:s3:::terraform-s3-backend-tws-hackathon111/*"
+            ]
+        },
+        {
+            "Sid": "TerraformLockingAccess",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:228578233417:table/terraform-locks"
+        },
+        {
+            "Sid": "IAMManagementForAddonRoles",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:AttachRolePolicy",
+                "iam:DetachRolePolicy",
+                "iam:GetRole",
+                "iam:PassRole",
+                "iam:CreatePolicy",
+                "iam:DeletePolicy",
+                "iam:GetPolicy"
+            ],
+            "Resource": [
+                "arn:aws:iam::228578233417:role/AmazonEKS*",
+                "arn:aws:iam::228578233417:policy/ExternalDNSPolicyForEKS",
+                "arn:aws:iam::228578233417:policy/AWSLoadBalancerControllerIAMPolicy"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "iam:PermissionsBoundary": "arn:aws:iam::228578233417:policy/RunnerPermissionsBoundary"
+                }
+            }
+        },
+        {
+            "Sid": "ReadOnlyForTerraformDataSource",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetOpenIDConnectProvider",
+                "route53:ListHostedZonesByName"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
