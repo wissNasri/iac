@@ -34,7 +34,7 @@
             "Sid": "AllowReadingGitHubPAT",
             "Effect": "Allow",
             "Action": "secretsmanager:GetSecretValue",
-            "Resource": "arn:aws:iam::228578233417:secret:self_hosted_runner_pat-*"
+            "Resource": "arn:aws:secretsmanager:us-east-1:228578233417:secret:self_hosted_runner_pat-??????"
         },
         {
             "Sid": "AllowSSMAccessForRunner",
