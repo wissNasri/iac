@@ -1,47 +1,34 @@
-# Nom du fichier : .github/workflows/terraform-iac.yml
-
-name: "IAC: Deploy Infrastructure (Secure & Modern)"
-
+name: "IAC: Deploy or Destroy Infrastructure"
 
 on:
-
   push:
-    branches: 
-      - main 
+    branches: [ main ]
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
   pull_request:
-    branches: 
-      - main 
+    branches: [ main ]
     paths: 
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
       
-  # ===================================================================
-  # MODIFICATION 1: Ajout d'entrées pour le déclenchement manuel
-  # ===================================================================
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action à exécuter : "apply" ou "destroy"'
+        description: 'Action: "apply" ou "destroy"'
         required: true
         default: 'apply'
         type: choice
-        options:
-        - apply
-        - destroy
+        options: [apply, destroy]
       
-      # Ajout d'une confirmation pour l'action de destruction
       confirm_destroy:
-        description: 'Tapez "destroy-confirm" pour confirmer la destruction. (Obligatoire si action=destroy)'
-        required: false # Rendu obligatoire par la logique du job plus bas
+        description: 'Si action=destroy, tapez "destroy-confirm" pour valider.'
+        required: false
 
 jobs:
   terraform:
     name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
-    
     
     permissions:
       id-token: write
@@ -56,7 +43,11 @@ jobs:
     - name: Checkout source code 
       uses: actions/checkout@v4
 
-
+    # --- AJOUT : Installer kubectl ---
+    - name: Install Kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt )/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -71,24 +62,18 @@ jobs:
 
     - name: Terraform Init
       id: init
+      # Terraform va automatiquement télécharger le provider "local"
       run: terraform init  
 
     - name: Terraform Plan
       id: plan
-      # Le plan s'exécute toujours pour voir les changements, même avant une destruction.
       run: terraform plan -no-color -input=false -out=planfile
 
-    # ===================================================================
-    # MODIFICATION 2: L'étape Apply ne s'exécute que si l'action est "apply"
-    # ===================================================================
-    - name: "Terraform Apply"
+    - name: Terraform Apply
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve -input=false planfile
 
-    # ===================================================================
-    # MODIFICATION 3: Nouvelle étape pour la destruction, avec double confirmation
-    # ===================================================================
-    - name: "Terraform Destroy (DANGEROUS)"
+    - name: Terraform Destroy (DANGEROUS)
       if: |
         github.event_name == 'workflow_dispatch' &&
         github.event.inputs.action == 'destroy' &&
