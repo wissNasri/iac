@@ -1,9 +1,10 @@
 # Nom du fichier : .github/workflows/terraform-iac.yml
-# DESCRIPTION : Gère le cycle de vie complet de l'infrastructure, y compris un nettoyage automatisé avant la destruction.
 
-name: "IAC: Deploy, Destroy & Cleanup Infrastructure"
+name: "IAC: Deploy Infrastructure (Secure & Modern)"
+
 
 on:
+
   push:
     branches: 
       - main 
@@ -17,6 +18,9 @@ on:
       - 'terraform/**'
       - '.github/workflows/terraform-iac.yml'
       
+  # ===================================================================
+  # MODIFICATION 1: Ajout d'entrées pour le déclenchement manuel
+  # ===================================================================
   workflow_dispatch:
     inputs:
       action:
@@ -28,79 +32,16 @@ on:
         - apply
         - destroy
       
+      # Ajout d'une confirmation pour l'action de destruction
       confirm_destroy:
-        description: 'Si action=destroy, tapez "destroy-confirm" pour confirmer.'
-        required: false
+        description: 'Tapez "destroy-confirm" pour confirmer la destruction. (Obligatoire si action=destroy)'
+        required: false # Rendu obligatoire par la logique du job plus bas
 
 jobs:
-  # ===================================================================
-  # JOB 1 : NETTOYAGE DES RESSOURCES KUBERNETES (NOUVEAU)
-  # Ce job s'exécute UNIQUEMENT lors d'une demande de destruction.
-  # ===================================================================
-  cleanup-k8s-before-destroy:
-    name: "1. K8s Cleanup (Ingress, Services)"
-    # Condition : Ne s'exécute que si l'action manuelle est "destroy"
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
-    
-    runs-on: ubuntu-latest
-    
-    # Permissions nécessaires pour s'authentifier sur AWS via OIDC
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-    # Étape 1.1 : S'authentifier sur AWS
-    - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::228578233417:role/oicd
-        aws-region: us-east-1
-
-    # Étape 1.2 : Installer les outils nécessaires (kubectl)
-    - name: Install Kubectl
-      run: |
-        echo "Installing kubectl..."
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt )/bin/linux/amd64/kubectl"
-        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-        kubectl version --client
-
-    # Étape 1.3 : Se connecter au cluster EKS
-    - name: Configure Kubeconfig for EKS
-      run: |
-        echo "Configuring kubectl to connect to EKS cluster tws-eks-cluster..."
-        aws eks update-kubeconfig --region us-east-1 --name tws-eks-cluster
-        echo "Kubeconfig configured. Verifying cluster access:"
-        kubectl get nodes -o wide
-
-    # Étape 1.4 : Supprimer les ressources bloquantes
-    - name: Delete Kubernetes resources creating AWS dependencies
-      run: |
-        echo "--- Deleting all Ingresses in all namespaces ---"
-        kubectl delete ingress --all --all-namespaces --ignore-not-found=true
-        
-        echo "--- Deleting all Services of type LoadBalancer in all namespaces ---"
-        kubectl delete service --all --all-namespaces --field-selector=spec.type=LoadBalancer --ignore-not-found=true
-        
-        echo "--- Deleting all PersistentVolumeClaims which could hold EBS volumes ---"
-        kubectl delete pvc --all --all-namespaces --ignore-not-found=true
-        
-        echo "Resources deleted from Kubernetes. Waiting 3 minutes for AWS controllers to de-provision Load Balancers and EBS volumes..."
-        sleep 180
-        echo "Wait time complete."
-
-  # ===================================================================
-  # JOB 2 : TERRAFORM (MODIFIÉ)
-  # Ce job dépend maintenant du job de nettoyage pour l'action "destroy".
-  # ===================================================================
   terraform:
-    name: "2. Terraform Plan, Apply & Destroy"
-    # Dépendance : attend la fin du nettoyage si celui-ci a été exécuté.
-    needs: cleanup-k8s-before-destroy
-    # Condition : S'exécute toujours pour "apply", mais seulement si le nettoyage a réussi pour "destroy".
-    if: always() && (github.event.inputs.action != 'destroy' || needs.cleanup-k8s-before-destroy.result == 'success')
-
+    name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
+    
     
     permissions:
       id-token: write
@@ -114,6 +55,8 @@ jobs:
     steps:
     - name: Checkout source code 
       uses: actions/checkout@v4
+
+
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -132,12 +75,19 @@ jobs:
 
     - name: Terraform Plan
       id: plan
+      # Le plan s'exécute toujours pour voir les changements, même avant une destruction.
       run: terraform plan -no-color -input=false -out=planfile
 
+    # ===================================================================
+    # MODIFICATION 2: L'étape Apply ne s'exécute que si l'action est "apply"
+    # ===================================================================
     - name: "Terraform Apply"
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
       run: terraform apply -auto-approve -input=false planfile
 
+    # ===================================================================
+    # MODIFICATION 3: Nouvelle étape pour la destruction, avec double confirmation
+    # ===================================================================
     - name: "Terraform Destroy (DANGEROUS)"
       if: |
         github.event_name == 'workflow_dispatch' &&
