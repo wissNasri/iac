@@ -68,7 +68,7 @@ module "eks" {
           access_scope = { type = "cluster" }
         }
       }
-    }
+    },
 
 
   cluster_security_group_additional_rules = {
