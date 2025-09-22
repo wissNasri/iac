@@ -54,8 +54,21 @@ module "eks" {
         }
       }
     }
-  }
+  },
 
+
+    # Entrée 2 : Pour les pipelines sur runners GitHub (OIDC)
+    github_oidc_access = {
+      # On utilise l'ARN du rôle OIDC que vous avez créé manuellement ou via un autre TF
+      # Assurez-vous que cet ARN est le bon.
+      principal_arn = "arn:aws:iam::228578233417:role/oicd" 
+      policy_associations = {
+        admin_policy = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
 
 
   cluster_security_group_additional_rules = {
