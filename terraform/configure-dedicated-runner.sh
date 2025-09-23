@@ -24,16 +24,28 @@ unzip -q awscliv2.zip
 sudo ./aws/install
 
 # Installer kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt )/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt  )/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 # Installer Helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-# Installer Terraform
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs ) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-sudo apt-get update && sudo apt-get install -y terraform
+# ===================================================================
+# MODIFICATION : Remplacer l'installation de Terraform via 'apt'
+# par une installation manuelle pour contrôler la version.
+# ===================================================================
+# Installer Terraform (méthode manuelle pour utiliser une version récente )
+echo "--- Installation de Terraform v1.8.5 ---"
+TERRAFORM_VERSION="1.8.5"
+curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip # -o pour écraser sans demander
+sudo install terraform /usr/local/bin/
+rm terraform terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+echo "--- Terraform v${TERRAFORM_VERSION} installé avec succès ---"
+terraform --version # Affiche la version pour confirmation
+# ===================================================================
+# FIN DE LA MODIFICATION
+# ===================================================================
 
 echo "--- Dépendances installées ---"
 
@@ -42,7 +54,7 @@ echo "--- Dépendances installées ---"
 # -------------------------------
 GITHUB_PAT=$(aws secretsmanager get-secret-value \
   --secret-id "$SECRET_ID" \
-  --region "$AWS_REGION" | jq -r '.SecretString')
+  --region "$AWS_REGION" | jq -r '.SecretString' )
 
 if [ -z "$GITHUB_PAT" ]; then
     echo "ERREUR: Impossible de récupérer le PAT. Vérifiez le nom du secret et les permissions IAM."
@@ -58,7 +70,7 @@ REG_TOKEN=$(curl -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer ${GITHUB_PAT}" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runners/registration-token" | jq -r '.token' )
+  "https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runners/registration-token" | jq -r '.token'  )
 
 if [ -z "$REG_TOKEN" ]; then
     echo "ERREUR: Impossible de générer le token d'enregistrement pour le runner."
@@ -72,7 +84,7 @@ echo "--- Token d'enregistrement temporaire généré ---"
 mkdir -p "$RUNNER_DIR"
 cd "$RUNNER_DIR"
 
-LATEST_VERSION=$(curl -s "https://api.github.com/repos/actions/runner/releases/latest" | jq -r '.tag_name' | sed 's/v//' )
+LATEST_VERSION=$(curl -s "https://api.github.com/repos/actions/runner/releases/latest" | jq -r '.tag_name' | sed 's/v//'  )
 RUNNER_TAR="actions-runner-linux-x64-${LATEST_VERSION}.tar.gz"
 curl -O -L "https://github.com/actions/runner/releases/download/v${LATEST_VERSION}/${RUNNER_TAR}"
 tar xzf $RUNNER_TAR
@@ -82,7 +94,7 @@ chown -R ubuntu:ubuntu "$RUNNER_DIR"
 sudo -u ubuntu ./config.sh \
   --url "https://github.com/${GH_OWNER}/${GH_REPO}" \
   --token "$REG_TOKEN" \
-  --name "dedicated-runner-$(hostname )" \
+  --name "dedicated-runner-$(hostname  )" \
   --labels "$RUNNER_LABELS" \
   --unattended --replace
 
