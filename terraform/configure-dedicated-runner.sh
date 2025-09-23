@@ -3,7 +3,7 @@
 # Ce script sera exécuté automatiquement par Terraform (user_data).
 
 # -------------------------------
-# Variables à adapter
+# Variables
 # -------------------------------
 GH_OWNER="wissNasri"
 GH_REPO="terraformHelm"
@@ -31,39 +31,35 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 # ===================================================================
-# MODIFICATION : Remplacer l'installation de Terraform via 'apt'
-# par une installation manuelle pour contrôler la version.
+# MODIFICATION : Installation manuelle de Terraform pour contrôler la version
 # ===================================================================
-# Installer Terraform (méthode manuelle pour utiliser une version récente )
 echo "--- Installation de Terraform v1.8.5 ---"
 TERRAFORM_VERSION="1.8.5"
 curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
-unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip # -o pour écraser sans demander
+unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 sudo install terraform /usr/local/bin/
 rm terraform terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 echo "--- Terraform v${TERRAFORM_VERSION} installé avec succès ---"
 terraform --version # Affiche la version pour confirmation
 # ===================================================================
-# FIN DE LA MODIFICATION
-# ===================================================================
 
 echo "--- Dépendances installées ---"
 
 # -------------------------------
-# Étape 2 : Récupérer le PAT GitHub depuis AWS Secrets Manager
+# Étape 2 : Récupérer le PAT GitHub
 # -------------------------------
 GITHUB_PAT=$(aws secretsmanager get-secret-value \
   --secret-id "$SECRET_ID" \
   --region "$AWS_REGION" | jq -r '.SecretString' )
 
 if [ -z "$GITHUB_PAT" ]; then
-    echo "ERREUR: Impossible de récupérer le PAT. Vérifiez le nom du secret et les permissions IAM."
+    echo "ERREUR: Impossible de récupérer le PAT."
     exit 1
 fi
 echo "--- PAT récupéré avec succès ---"
 
 # -------------------------------
-# Étape 3 : Générer le token d'enregistrement temporaire
+# Étape 3 : Générer le token d'enregistrement
 # -------------------------------
 REG_TOKEN=$(curl -L \
   -X POST \
@@ -73,13 +69,13 @@ REG_TOKEN=$(curl -L \
   "https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runners/registration-token" | jq -r '.token'  )
 
 if [ -z "$REG_TOKEN" ]; then
-    echo "ERREUR: Impossible de générer le token d'enregistrement pour le runner."
+    echo "ERREUR: Impossible de générer le token d'enregistrement."
     exit 1
 fi
 echo "--- Token d'enregistrement temporaire généré ---"
 
 # -------------------------------
-# Étape 4 : Télécharger et configurer le runner
+# Étape 4 : Configurer le runner
 # -------------------------------
 mkdir -p "$RUNNER_DIR"
 cd "$RUNNER_DIR"
@@ -94,12 +90,12 @@ chown -R ubuntu:ubuntu "$RUNNER_DIR"
 sudo -u ubuntu ./config.sh \
   --url "https://github.com/${GH_OWNER}/${GH_REPO}" \
   --token "$REG_TOKEN" \
-  --name "dedicated-runner-$(hostname  )" \
+  --name "dedicated-runner-$(hostname )" \
   --labels "$RUNNER_LABELS" \
   --unattended --replace
 
 # -------------------------------
-# Étape 5 : Installer et démarrer le service
+# Étape 5 : Démarrer le service
 # -------------------------------
 sudo ./svc.sh install ubuntu
 sudo ./svc.sh start
