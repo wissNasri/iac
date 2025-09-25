@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "runner_ssm_access" {
 
 # 6. Profil d'instance (inchangé)
 resource "aws_iam_instance_profile" "self_hosted_runner_profile" {
-  name = "GitHubRunnerInstanceProfile"
+  name = "GitHubRunnerInstanceProfile-"
   role = aws_iam_role.self_hosted_runner_role.name
   # Cette ligne garantit que le profil attend la création complète du rôle.
   depends_on = [
