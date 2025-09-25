@@ -24,7 +24,6 @@ module "vpc" {
   }
   # Ensure public subnets auto-assign public IPs
   map_public_ip_on_launch = true
-  depends_on = [module.eks.eks_managed_node_groups_id]
 
 
 }
