@@ -104,11 +104,12 @@ module "eks" {
     tws-demo-ng = {
       min_size     = 1
       max_size     = 3
-      desired_size = 3
+      desired_size = 1
 
-      instance_types = ["m7i-flex.large"]
-      capacity_type  = "ON_DEMAND"
-      #capacity_type  = "SPOT"
+      #instance_types = ["m7i-flex.large"]
+      instance_types = ["t3.micro"]
+      #capacity_type  = "ON_DEMAND"
+      capacity_type  = "SPOT"
       disk_size                  = 35
       use_custom_launch_template = false # Important to apply disk size!
 
@@ -140,7 +141,7 @@ data "aws_instances" "eks_nodes" {
     values = ["running"]
   }
 
-  depends_on = [module.vpc]
+  depends_on = [module.eks]
 }
 output "eks_managed_node_groups_id" {
   description = "L'ID du node group EKS managé, utilisé pour créer une dépendance explicite."
