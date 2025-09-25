@@ -1,7 +1,6 @@
 # Rôle IAM pour le bastion host
 resource "aws_iam_role" "bastion_eks_role" {
-  name = "bastion-eks-role"
-
+  name_prefix = "bastion-eks-role-"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
