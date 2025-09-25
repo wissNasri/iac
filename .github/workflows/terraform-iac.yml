@@ -76,14 +76,14 @@ jobs:
     - name: Terraform Plan
       id: plan
       # Le plan s'exécute toujours pour voir les changements, même avant une destruction.
-      run: terraform plan -no-color -input=false -out=planfile 
+      run: terraform plan -no-color -input=false -out=planfile -lock=false
 
     # ===================================================================
     # MODIFICATION 2: L'étape Apply ne s'exécute que si l'action est "apply"
     # ===================================================================
     - name: "Terraform Apply"
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
-      run: terraform apply -auto-approve -input=false planfile 
+      run: terraform apply -auto-approve -input=false planfile -lock=false
 
     # ===================================================================
     # MODIFICATION 3: Nouvelle étape pour la destruction, avec double confirmation
@@ -93,4 +93,4 @@ jobs:
         github.event_name == 'workflow_dispatch' &&
         github.event.inputs.action == 'destroy' &&
         github.event.inputs.confirm_destroy == 'destroy-confirm'
-      run: terraform destroy -auto-approve 
+      run: terraform destroy -auto-approve  -lock=false
