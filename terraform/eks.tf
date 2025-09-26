@@ -141,7 +141,7 @@ data "aws_instances" "eks_nodes" {
     values = ["running"]
   }
 
-  depends_on = [module.eks]
+  depends_on = [module.vpc]
 }
 output "eks_managed_node_groups_id" {
   description = "L'ID du node group EKS managé, utilisé pour créer une dépendance explicite."
