@@ -33,46 +33,45 @@ on:
 
 jobs:
   # ===================================================================
-  # MODIFICATION 1: Ajout d'un nouveau job pour le scan Checkov
-  # Ce job s'exécute en premier pour valider la sécurité du code.
+  # JOB DE SCAN CHECKOV CORRIGÉ POUR LE RAPPORT JSON
   # ===================================================================
   security_scan:
     name: "Security: Scan IaC with Checkov"
     runs-on: ubuntu-latest
     permissions:
-      contents: read 
-    
+      contents: read # Permission nécessaire pour lire le code
+
     steps:
     - name: Checkout source code 
       uses: actions/checkout@v4
 
-    - name: Run Checkov scan on Terraform code
+    - name: Run Checkov scan and generate JSON report
       uses: bridgecrewio/checkov-action@master
       with:
+        # Cible le répertoire principal de terraform
         directory: ./terraform
         framework: terraform
-        output_format: cli,json
-        output_file_path: console,./checkov-report.json
-        # 'quiet: true' peut masquer des informations utiles, je le désactive pour une meilleure visibilité.
-        # quiet: true
-        
-        # 'soft_fail: true' permet au pipeline de continuer même si des erreurs sont trouvées.
-        # Pour bloquer le déploiement en cas de problème, mettez cette option à 'false' ou supprimez-la.
+        # MODIFICATION : Génère uniquement le rapport JSON
+        output_format: json
+        output_file_path: checkov-iac-report.json
+        # Le pipeline s'arrêtera si une erreur est trouvée.
         soft_fail: false
 
     - name: Upload Checkov JSON report as artifact
+      # MODIFICATION : Assure que le rapport est toujours uploadé, même si le scan échoue
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: checkov-report
-        path: ./checkov-report.json
+        name: checkov-iac-report-json
+        path: checkov-iac-report.json
 
   # ===================================================================
-  # MODIFICATION 2: Le job Terraform dépend maintenant du succès du job de sécurité
+  # JOB TERRAFORM (INCHANGÉ)
   # ===================================================================
   terraform:
     name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
-    needs: security_scan # Assure que le scan de sécurité passe avant de continuer
+    needs: security_scan # Dépend du succès du scan de sécurité
 
     permissions:
       id-token: write
