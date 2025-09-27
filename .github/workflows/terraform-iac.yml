@@ -39,6 +39,8 @@ jobs:
   security_scan:
     name: "Security: Scan IaC with Checkov"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read 
     
     steps:
     - name: Checkout source code 
