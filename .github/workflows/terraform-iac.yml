@@ -1,4 +1,3 @@
-# Nom du fichier : .github/workflows/terraform-iac.yml
 
 name: "IAC: Deploy Infrastructure (Secure & Modern)"
 
@@ -32,14 +31,11 @@ on:
         required: false
 
 jobs:
-  # ===================================================================
-  # JOB DE SCAN CHECKOV CORRIGÉ POUR LE RAPPORT JSON
-  # ===================================================================
   security_scan:
     name: "Security: Scan IaC with Checkov"
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Permission nécessaire pour lire le code
+      contents: read 
 
     steps:
     - name: Checkout source code 
@@ -48,26 +44,19 @@ jobs:
     - name: Run Checkov scan and generate JSON report
       uses: bridgecrewio/checkov-action@master
       with:
-        # Cible le répertoire principal de terraform
         directory: ./terraform
         framework: terraform
-        # MODIFICATION : Génère uniquement le rapport JSON
         output_format: json
         output_file_path: checkov-iac-report.json
-        # Le pipeline s'arrêtera si une erreur est trouvée.
         soft_fail: false
 
     - name: Upload Checkov JSON report as artifact
-      # MODIFICATION : Assure que le rapport est toujours uploadé, même si le scan échoue
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: checkov-iac-report-json
         path: checkov-iac-report.json
 
-  # ===================================================================
-  # JOB TERRAFORM (INCHANGÉ)
-  # ===================================================================
   terraform:
     name: "Terraform Plan, Apply & Destroy"
     runs-on: ubuntu-latest
