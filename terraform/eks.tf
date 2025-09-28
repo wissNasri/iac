@@ -22,15 +22,12 @@ resource "aws_security_group" "node_group_remote_access" {
 
 
 module "eks" {
-
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
-
   cluster_name                    = local.name
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = false
   cluster_endpoint_private_access = true
-
   access_entries = {
     # Entrée existante pour le bastion (on la garde)
     bastion_access = {
@@ -42,8 +39,6 @@ module "eks" {
         }
       }
     },
-    
-    # NOUVELLE entrée pour la pipeline GitHub Actions via OIDC
     github_actions_oidc_access = {
       # L'ARN du rôle que vous avez créé manuellement pour OIDC
       principal_arn = aws_iam_role.self_hosted_runner_role.arn
