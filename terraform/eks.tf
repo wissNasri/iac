@@ -26,11 +26,11 @@ module "eks" {
   version = "~> 20.0"
   cluster_name                    = local.name
   cluster_version                 = "1.31"
+
   cluster_endpoint_public_access  = false
   cluster_endpoint_private_access = true
 
   access_entries = {
-    # Entrée existante pour le bastion (on la garde)
     bastion_access = {
       principal_arn = aws_iam_role.bastion_eks_role.arn
       policy_associations = {
