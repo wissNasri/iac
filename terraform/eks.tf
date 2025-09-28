@@ -28,6 +28,7 @@ module "eks" {
   cluster_version                 = "1.31"
   cluster_endpoint_public_access  = false
   cluster_endpoint_private_access = true
+
   access_entries = {
     # Entrée existante pour le bastion (on la garde)
     bastion_access = {
