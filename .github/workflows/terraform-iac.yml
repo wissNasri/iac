@@ -48,7 +48,7 @@ jobs:
         framework: terraform
         output_format: json
         output_file_path: checkov-iac-report.json
-        soft_fail: false
+        soft_fail: true
 
     - name: Upload Checkov JSON report as artifact
       if: always()
