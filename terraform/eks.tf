@@ -99,8 +99,8 @@ module "eks" {
 
     tws-demo-ng = {
       min_size     = 1
-      max_size     = 3
-      desired_size = 3
+      max_size     = 4
+      desired_size = 4
 
       instance_types = ["m7i-flex.large"]
       #instance_types = ["t3.micro"]
