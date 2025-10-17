@@ -92,11 +92,11 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color -input=false -out=planfile  -lock=false
+      run: terraform plan -no-color -input=false -out=planfile  
 
     - name: "Terraform Apply"
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
-      run: terraform apply -auto-approve -input=false planfile  -lock=false
+      run: terraform apply -auto-approve -input=false planfile  
 
     - name: "Terraform Destroy (DANGEROUS)"
       if: |
