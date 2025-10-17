@@ -2,7 +2,7 @@
 
 # 1. Rôle IAM pour l'instance du runner (inchangé)
 resource "aws_iam_role" "self_hosted_runner_role" {
-  name_prefix = "GitHubRunnerRole-"
+  name_prefix = "GitHubRunnerRole-testFINALE"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
