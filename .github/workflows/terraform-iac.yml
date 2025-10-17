@@ -96,7 +96,7 @@ jobs:
 
     - name: "Terraform Apply"
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
-      run: terraform apply -auto-approve -input=false planfile 
+      run: terraform apply -auto-approve -input=false planfile  -lock=false
 
     - name: "Terraform Destroy (DANGEROUS)"
       if: |
